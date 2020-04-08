@@ -26,6 +26,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.flaskappexemplo.util.Constants.URI_CONSOLE;
+
 public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener{
 
     private ListView lvConsoles;
@@ -44,9 +46,8 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     }
 
     private void loadConsoles() {
-        String url = "http://10.0.2.2:5000/api/console";
-
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URI_CONSOLE,
+                null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 List<Console> consoles = new ArrayList<>();
@@ -76,7 +77,9 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     }
 
     private void setConsoleAdapter(List<Console> consoles) {
-        ArrayAdapter<Console> adapter = new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,consoles);
+        ArrayAdapter<Console> adapter = new ArrayAdapter<>(
+                getApplicationContext(), android.R.layout.simple_list_item_1, consoles
+        );
         lvConsoles.setAdapter(adapter);
         lvConsoles.setOnItemClickListener(this);
     }
@@ -84,14 +87,14 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
         Console console = (Console) adapterView.getItemAtPosition(position);
-        Intent detailConsole = new Intent(MainActivity.this,ConsoleDetailActivity.class);
+        Intent detailConsole = new Intent(MainActivity.this, ConsoleDetailActivity.class);
 
         detailConsole.putExtra("ID",console.getId());
         startActivity(detailConsole);
     }
 
     public void newConsole(View view) {
-        Intent newConsole = new Intent(MainActivity.this,NewConsoleActivity.class);
+        Intent newConsole = new Intent(MainActivity.this, NewConsoleActivity.class);
         startActivity(newConsole);
     }
 }

@@ -5,7 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -19,11 +22,19 @@ import com.example.flaskappexemplo.util.APISingleton;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class NewConsoleActivity extends AppCompatActivity {
+import static com.example.flaskappexemplo.util.Constants.CREATED_CONSOLE;
+import static com.example.flaskappexemplo.util.Constants.IS_ACTIVE_FLAG;
+import static com.example.flaskappexemplo.util.Constants.UPDATED_CONSOLE;
+import static com.example.flaskappexemplo.util.Constants.URI_CONSOLE;
 
-    private EditText editName, editYear, editPrice;
+public class NewConsoleActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+
+    private EditText editName, editYear, editPrice, editTotalGames;
+    private Spinner spinnerIsActive;
     private long id;
+    private boolean isActive;
     private Console console;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,16 +43,24 @@ public class NewConsoleActivity extends AppCompatActivity {
         editName = findViewById(R.id.editName);
         editYear = findViewById(R.id.editYear);
         editPrice = findViewById(R.id.editPrice);
+        editTotalGames = findViewById(R.id.editTotalGames);
+        spinnerIsActive = findViewById(R.id.spinnerIsActive);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(NewConsoleActivity.this,
+                android.R.layout.simple_spinner_item, IS_ACTIVE_FLAG);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerIsActive.setAdapter(adapter);
+        spinnerIsActive.setOnItemSelectedListener(this);
 
         id = getIntent().getLongExtra("ID",0);
 
-        if(id != 0){
+        if (id != 0) {
             loadConsole();
         }
     }
 
     private void loadConsole() {
-        String url = "http://10.0.2.2:5000/api/console/"+id;
+        String url = URI_CONSOLE + "/" + id;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -51,10 +70,14 @@ public class NewConsoleActivity extends AppCompatActivity {
                     console.setName(response.getString("name"));
                     console.setYear(response.getInt("year"));
                     console.setPrice(response.getDouble("price"));
+                    console.setTotalGames(response.getInt("total_games"));
+                    console.setActive(response.getBoolean("is_active"));
 
                     editName.setText(console.getName());
                     editYear.setText(String.valueOf(console.getYear()));
                     editPrice.setText(String.valueOf(console.getPrice()));
+                    editTotalGames.setText(String.valueOf(console.getTotalGames()));
+                    spinnerIsActive.setSelection((console.isActive()) ? 0 : 1);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -73,21 +96,23 @@ public class NewConsoleActivity extends AppCompatActivity {
         JSONObject object = new JSONObject();
 
         try {
-            object.put("name",editName.getText().toString());
-            object.put("year",Integer.parseInt(editYear.getText().toString()));
-            object.put("price",Double.parseDouble(editPrice.getText().toString()));
+            object.put("name", editName.getText().toString());
+            object.put("year", Integer.parseInt(editYear.getText().toString()));
+            object.put("price", Double.parseDouble(editPrice.getText().toString()));
+            object.put("total_games", Integer.parseInt(editTotalGames.getText().toString()));
+            object.put("is_active", isActive);
 
             JsonObjectRequest request = new JsonObjectRequest(method, url, object, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
-                        String message = "";
+                        String message;
                         if(method == Request.Method.POST)
-                            message = "Console "+response.getString("name")+" salvo com sucesso!";
+                            message = CREATED_CONSOLE + response.getLong("id");
                         else
-                            message = "Console "+response.getLong("id")+" atualizado com sucesso!";
+                            message = UPDATED_CONSOLE + response.getLong("id");
                         Toast.makeText(NewConsoleActivity.this, message, Toast.LENGTH_SHORT).show();
-                        Intent main = new Intent(NewConsoleActivity.this,MainActivity.class);
+                        Intent main = new Intent(NewConsoleActivity.this, MainActivity.class);
                         startActivity(main);
                         finish();
                     } catch (JSONException e) {
@@ -96,9 +121,7 @@ public class NewConsoleActivity extends AppCompatActivity {
                 }
             }, new Response.ErrorListener() {
                 @Override
-                public void onErrorResponse(VolleyError error) {
-
-                }
+                public void onErrorResponse(VolleyError error) { }
             });
 
             APISingleton.getInstance(getApplicationContext()).addToRequestQueue(request);
@@ -108,10 +131,24 @@ public class NewConsoleActivity extends AppCompatActivity {
     }
 
     public void saveConsole(View view){
-        String url = "http://10.0.2.2:5000/api/console";
-        if(id != 0)
-            createConsole(url+"/"+id,Request.Method.PUT);
+        if (id != 0)
+            createConsole(URI_CONSOLE + "/" + id, Request.Method.PUT);
         else
-            createConsole(url,Request.Method.POST);
+            createConsole(URI_CONSOLE, Request.Method.POST);
     }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        switch (position) {
+            case 0:
+                isActive = true;
+                break;
+            case 1:
+                isActive = false;
+                break;
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) { }
 }

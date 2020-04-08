@@ -5,6 +5,8 @@ public class Console {
     private String name;
     private int year;
     private double price;
+    private int totalGames;
+    private boolean isActive;
 
     public Console() {
     }
@@ -39,6 +41,22 @@ public class Console {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public int getTotalGames() {
+        return totalGames;
+    }
+
+    public void setTotalGames(int totalGames) {
+        this.totalGames = totalGames;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     @Override

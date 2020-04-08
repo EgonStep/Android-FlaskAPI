@@ -21,11 +21,17 @@ import com.example.flaskappexemplo.util.APISingleton;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.example.flaskappexemplo.util.Constants.DELETE;
+import static com.example.flaskappexemplo.util.Constants.DELETE_CONSOLE;
+import static com.example.flaskappexemplo.util.Constants.DELETE_WARN;
+import static com.example.flaskappexemplo.util.Constants.URI_CONSOLE;
+
 public class ConsoleDetailActivity extends AppCompatActivity {
 
-    private TextView textName, textYear, textPrice;
+    private TextView textName, textYear, textPrice, textTotalGames, textIsActive;
     private long id;
     private Console console;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +42,8 @@ public class ConsoleDetailActivity extends AppCompatActivity {
         textName = findViewById(R.id.textName);
         textYear = findViewById(R.id.textYear);
         textPrice = findViewById(R.id.textPrice);
+        textTotalGames = findViewById(R.id.textTotalGames);
+        textIsActive = findViewById(R.id.textIsActive);
     }
 
     @Override
@@ -45,7 +53,7 @@ public class ConsoleDetailActivity extends AppCompatActivity {
     }
 
     private void loadConsole() {
-        String url = "http://10.0.2.2:5000/api/console/"+id;
+        String url = URI_CONSOLE + "/" + id;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -55,10 +63,14 @@ public class ConsoleDetailActivity extends AppCompatActivity {
                     console.setName(response.getString("name"));
                     console.setYear(response.getInt("year"));
                     console.setPrice(response.getDouble("price"));
+                    console.setTotalGames(response.getInt("total_games"));
+                    console.setActive(response.getBoolean("is_active"));
 
                     textName.setText(console.getName());
                     textYear.setText(String.valueOf(console.getYear()));
                     textPrice.setText(String.valueOf(console.getPrice()));
+                    textTotalGames.setText(String.valueOf(console.getTotalGames()));
+                    textIsActive.setText((console.isActive()) ? "SIM" : "NAO");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -74,25 +86,26 @@ public class ConsoleDetailActivity extends AppCompatActivity {
     }
 
     public void updateConsole(View view) {
-        Intent newConsole = new Intent(ConsoleDetailActivity.this,NewConsoleActivity.class);
-        newConsole.putExtra("ID",console.getId());
+        Intent newConsole = new Intent(ConsoleDetailActivity.this, NewConsoleActivity.class);
+        newConsole.putExtra("ID", console.getId());
         startActivity(newConsole);
     }
 
     public void deleteConsole(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Tem certeza que deseja excluir o console "+console.getId()+"?");
-        builder.setTitle("Excluir");
-        builder.setPositiveButton("SIM", new DialogInterface.OnClickListener() {
+        builder.setMessage(DELETE_WARN + console.getId() + "?");
+        builder.setTitle(DELETE);
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                String url = "http://10.0.2.2:5000/api/console/"+id;
+                String url = URI_CONSOLE + "/" + id;
                 JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            Toast.makeText(ConsoleDetailActivity.this, "Console "+response.getLong("id")+" removido.", Toast.LENGTH_SHORT).show();
-                            Intent main = new Intent(ConsoleDetailActivity.this,MainActivity.class);
+                            Toast.makeText(ConsoleDetailActivity.this, DELETE_CONSOLE +
+                                    response.getLong("id"), Toast.LENGTH_SHORT).show();
+                            Intent main = new Intent(ConsoleDetailActivity.this, MainActivity.class);
                             startActivity(main);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -107,7 +120,7 @@ public class ConsoleDetailActivity extends AppCompatActivity {
                 APISingleton.getInstance(getApplicationContext()).addToRequestQueue(request);
             }
         });
-        builder.setNegativeButton("NÃO",null);
+        builder.setNegativeButton("NO",null);
 
         AlertDialog dialog = builder.create();
         dialog.show();

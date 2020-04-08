@@ -24,6 +24,16 @@
         android:hint="Preço"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+    <EditText
+        android:id="@+id/editTotalGames"
+        android:inputType="number"
+        android:hint="Total de Jogos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <Spinner
+        android:id="@+id/spinnerIsActive"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
     <Button
         android:text="Salvar"
         android:onClick="saveConsole"
